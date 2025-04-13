@@ -1,0 +1,39 @@
+{
+	"name": "ffmpeg-tool",
+	"version": "1.0.0",
+	"description": "",
+	"main": "electron/main.js",
+	"scripts": {
+		"dev": "concurrently \"vite\" \"electron .\" \"node server\"",
+		"build": "vite build && electron-builder",
+		"start": "electron ."
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.8.4",
+		"pinia": "^3.0.2",
+		"sortablejs": "^1.15.6",
+		"vue": "^3.5.13",
+		"vue-router": "4"
+	},
+	"devDependencies": {
+		"electron": "35.1.4",
+		"electron-builder": "26.0.12"
+	},
+	"build": {
+		"appId": "com.example.flvmerger",
+		"files": [
+			"dist/**/*",
+			"electron/**/*"
+		],
+		"generateUpdatesFilesForAllChannels": true,
+		"directories": {
+			"output": "release"
+		},
+		"npmRebuild": false,
+		"nodeGypRebuild": false,
+		"publish": null
+	}
+}

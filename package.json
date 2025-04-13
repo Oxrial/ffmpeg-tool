@@ -3,8 +3,9 @@
 	"version": "1.0.0",
 	"description": "",
 	"main": "electron/main.js",
+	"type": "module",
 	"scripts": {
-		"dev": "concurrently \"vite\" \"electron .\" \"node server\"",
+		"dev": "concurrently \"vite\" \"electron .\"  \"node server\"",
 		"build": "vite build && electron-builder",
 		"start": "electron ."
 	},
@@ -13,27 +14,73 @@
 	"license": "ISC",
 	"dependencies": {
 		"axios": "^1.8.4",
+		"body-parser": "^2.2.0",
+		"cors": "^2.8.5",
+		"express": "^5.1.0",
 		"pinia": "^3.0.2",
 		"sortablejs": "^1.15.6",
 		"vue": "^3.5.13",
+		"vue-draggable-plus": "^0.6.0",
 		"vue-router": "4"
 	},
 	"devDependencies": {
+		"@vitejs/plugin-vue": "^5.2.3",
+		"concurrently": "8.2.2",
 		"electron": "35.1.4",
-		"electron-builder": "26.0.12"
+		"electron-builder": "26.0.12",
+		"vite": "5.0.8"
 	},
 	"build": {
 		"appId": "com.example.flvmerger",
+		"productName": "FFmpeg工具",
+		"copyright": "Copyright © 2023",
+		"extraFiles": [
+			{
+				"from": "electron/preload.js",
+				"to": "preload.js"
+			}
+		],
+		"fileAssociations": [
+			{
+				"ext": "flv",
+				"name": "FLV视频文件",
+				"role": "Viewer"
+			}
+		],
 		"files": [
 			"dist/**/*",
-			"electron/**/*"
+			"electron/**/*",
+			"!node_modules/**/*"
 		],
-		"generateUpdatesFilesForAllChannels": true,
 		"directories": {
 			"output": "release"
 		},
+		"extraResources": [
+			{
+				"from": "server",
+				"to": "server",
+				"filter": [
+					"**/*"
+				]
+			}
+		],
+		"publish": null,
 		"npmRebuild": false,
-		"nodeGypRebuild": false,
-		"publish": null
+		"win": {
+			"target": "nsis",
+			"icon": "build/icon.ico"
+		},
+		"nsis": {
+			"oneClick": false,
+			"allowToChangeInstallationDirectory": true
+		},
+		"mac": {
+			"target": "dmg",
+			"icon": "build/icon.icns"
+		},
+		"linux": {
+			"target": "AppImage",
+			"icon": "build/icon.png"
+		}
 	}
 }

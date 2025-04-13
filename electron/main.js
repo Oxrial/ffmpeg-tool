@@ -1,8 +1,9 @@
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
-
-process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
-
+import { fileURLToPath } from 'url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 let mainWindow
 
 function createWindow() {
@@ -10,14 +11,17 @@ function createWindow() {
 		width: 1200,
 		height: 800,
 		webPreferences: {
+			sandbox: false,
 			nodeIntegration: false,
 			contextIsolation: true,
 			preload: path.join(__dirname, 'preload.js')
 		}
 	})
 
+	// 隐藏菜单栏
+	mainWindow.setMenu(null)
 	if (process.env.NODE_ENV === 'development') {
-		mainWindow.loadURL('http://localhost:3000')
+		mainWindow.loadURL(import.meta.env.VITE_BASE_URL)
 		mainWindow.webContents.openDevTools()
 	} else {
 		mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))

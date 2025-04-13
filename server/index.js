@@ -1,18 +1,22 @@
-const express = require('express')
-const path = require('path')
-const fs = require('fs').promises
-const cors = require('cors')
+import express from 'express'
+import path from 'path'
+import { promises as fs } from 'fs'
+import cors from 'cors'
+import bodyParser from 'body-parser'
 
 const app = express()
-app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
 app.use(cors())
 
 let fileList = []
 let currentDirectory = ''
 
 app.post('/scan', async (req, res) => {
+	const directory = req.body.directory
+	if (!directory) return res.redirect('/?message=请选择目录')
+
 	try {
-		const directory = req.body.directory
 		await fs.access(directory)
 
 		const files = await fs.readdir(directory)
@@ -25,9 +29,9 @@ app.post('/scan', async (req, res) => {
 			}))
 
 		currentDirectory = directory
-		res.json({ success: true, files: fileList })
+		res.json({ success: 'success', files: fileList })
 	} catch (err) {
-		res.status(500).json({ error: err.message })
+		res.status(500).json({ success: 'error', error: err.message })
 	}
 })
 
@@ -40,20 +44,21 @@ app.post('/sort', (req, res) => {
 		fileList.sort((a, b) => a.ctime - b.ctime)
 	}
 
-	res.json({ success: true, files: fileList })
+	res.json({ success: 'success', files: fileList })
 })
 
 app.post('/confirm', async (req, res) => {
+	const list = req.body.list
 	try {
-		const content = fileList.map((file) => `file '${file.path}'`).join('\n')
+		const content = list.map((file) => `file '${file.path}'`).join('\n')
 		await fs.writeFile(path.join(currentDirectory, 'filelist.txt'), content)
-		res.json({ success: true, count: fileList.length })
+		res.json({ success: 'success', count: list.length })
 	} catch (err) {
-		res.status(500).json({ error: err.message })
+		res.status(500).json({ success: 'error', error: err.message })
 	}
 })
 
-const PORT = 3001
+const PORT = 38093
 app.listen(PORT, () => {
 	console.log(`API服务器运行在 http://localhost:${PORT}`)
 })

@@ -2,9 +2,8 @@
 	<div class="app-container">
 		<header>
 			<h1><i class="fas fa-video"></i> FLV文件合并工具</h1>
-			<div v-if="message" class="message">{{ message }}</div>
+			<div class="message" :class="resMsg.success">{{ resMsg.message }}</div>
 		</header>
-
 		<main>
 			<div class="control-panel">
 				<div class="directory-selector">
@@ -17,19 +16,28 @@
 				</button>
 			</div>
 
-			<div v-if="files.length > 0" class="file-manager">
+			<div class="file-manager">
 				<div class="action-bar">
 					<select v-model="sortMethod" @change="handleSort">
 						<option value="name">按文件名</option>
 						<option value="date">按创建时间</option>
 					</select>
-					<button @click="saveFilelist" :disabled="isLoading">
+					<button @click="saveFilelist" :disabled="!files.length">
 						<i class="fas fa-save"></i> 生成filelist.txt
 					</button>
 				</div>
 
 				<div class="file-list-container">
-					<div ref="fileList" class="file-list">
+					<div
+						v-draggable="[
+							files,
+							{
+								animation: 150,
+								ghostClass: 'ghost'
+							}
+						]"
+						class="file-list"
+					>
 						<FileItem v-for="file in files" :key="file.name" :file="file" />
 					</div>
 					<div class="file-count">共 {{ files.length }} 个FLV文件</div>
@@ -40,19 +48,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref } from 'vue'
 import { useFileStore } from './stores/fileStore'
 import FileItem from './components/FileItem.vue'
-import Sortable from 'sortablejs'
+import { vDraggable } from 'vue-draggable-plus'
+import { storeToRefs } from 'pinia'
 
-const fileStore = useFileStore()
-const { files, currentDir, isLoading, message, scanFiles, sortFiles, saveFilelist } = fileStore
-
+const { files, isLoading, resMsg } = storeToRefs(useFileStore())
+const { scanFiles, sortFiles, saveFilelist, resetResMsg } = useFileStore()
 const directory = ref('')
 const sortMethod = ref('name')
-const fileList = ref(null)
 
 const openFolderDialog = async () => {
+	resetResMsg()
 	if (window.electronAPI) {
 		const result = await window.electronAPI.openFolderDialog()
 		if (result) directory.value = result
@@ -62,33 +70,18 @@ const openFolderDialog = async () => {
 const handleScan = async () => {
 	if (!directory.value) return
 	await scanFiles(directory.value)
-	if (files.value.length > 0) {
-		initSortable()
-	}
 }
 
 const handleSort = () => {
 	sortFiles(sortMethod.value)
 }
-
-const initSortable = () => {
-	nextTick(() => {
-		new Sortable(fileList.value, {
-			animation: 150,
-			handle: '.drag-handle',
-			ghostClass: 'sortable-ghost',
-			chosenClass: 'sortable-chosen',
-			onEnd: () => {
-				const newOrder = Array.from(fileList.value.children)
-					.map((el) => files.value.find((f) => f.name === el.dataset.id))
-					.filter(Boolean)
-				files.value = newOrder
-			}
-		})
-	})
-}
 </script>
 
 <style>
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+.sortable-ghost {
+	opacity: 0.5;
+	background: #3b82f688;
+	border: 3px dashed pink;
+}
 </style>

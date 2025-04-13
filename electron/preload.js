@@ -1,3 +1,5 @@
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
